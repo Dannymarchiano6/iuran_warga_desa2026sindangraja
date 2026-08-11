@@ -2,31 +2,31 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use Notifiable;
+
+    // 1. Kasih tau Laravel kalau primary key-nya bukan 'id', tapi 'id_user'
+    protected $primaryKey = 'id_user';
+
+    // 2. Kasih tau Laravel kalau tabel ini TIDAK punya kolom 'updated_at'
+    const UPDATED_AT = null;
+
+    // 3. Sesuaikan nama kolom yang boleh diisi (mass assignment)
+    protected $fillable = [
+        'nama_lengkap', // <-- Sesuaikan dengan gambar
+        'username',
+        'role',
+        'password',
+    ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Attributes yang disembunyikan.
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $hidden = [
+        'password',
+    ];
 }

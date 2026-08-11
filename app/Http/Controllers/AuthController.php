@@ -14,7 +14,12 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        return view('auth.login'); // Sesuaikan dengan path view login Anda (misal: resources/views/auth/login.blade.php)
+        // Jika user sudah login, langsung arahkan ke dashboard sesuai role
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole(Auth::user());
+        }
+
+        return view('auth.login');
     }
 
     /**
@@ -31,18 +36,41 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
+        // Tangkap status "remember me" dari checkbox
+        $remember = $request->boolean('remember');
+
         // Coba lakukan login
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Redirect ke halaman dashboard
-            return redirect()->intended('/dashboard')->with('status', 'Berhasil masuk ke sistem.');
+            $user = Auth::user();
+
+            // Redirect berdasarkan Role
+            return $this->redirectBasedOnRole($user)
+                ->with('status', 'Berhasil masuk ke sistem.');
         }
 
-        // Jika gagal
+        // Jika login gagal
         return back()->withErrors([
             'username' => 'Username atau password yang Anda masukkan salah.',
         ])->onlyInput('username');
+    }
+
+    /**
+     * Helper Method: Redirect Berdasarkan Role User
+     */
+    protected function redirectBasedOnRole($user)
+    {
+        if ($user->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if ($user->role === 'bendahara') {
+            return redirect()->intended(route('bendahara.dashboard'));
+        }
+
+        // Fallback default jika role tidak terdefinisi
+        return redirect()->intended(route('dashboard'));
     }
 
     /**
@@ -50,7 +78,7 @@ class AuthController extends Controller
      */
     public function showRegisterForm()
     {
-        return view('auth.register'); // Sesuaikan dengan path view register Anda
+        return view('auth.register');
     }
 
     /**
@@ -77,14 +105,13 @@ class AuthController extends Controller
 
         // Simpan data User baru ke Database
         User::create([
-            'name'     => $request->nama_lengkap, // Menyesuaikan kolom 'name' default Laravel
-            'username' => $request->username,
-            'role'     => $request->role,
-            'password' => Hash::make($request->password),
+            'nama_lengkap' => $request->nama_lengkap, // <-- Ubah 'name' jadi 'nama_lengkap'
+            'username'     => $request->username,
+            'role'         => $request->role,
+            'password'     => Hash::make($request->password),
         ]);
 
-        // Redirect kembali ke halaman register / login dengan pesan sukses
-        return redirect()->route('register')->with('success', 'Pendaftaran akun berhasil! Silakan login.');
+        return redirect()->route('login')->with('success', 'Pendaftaran akun berhasil! Silakan login.');
     }
 
     /**
