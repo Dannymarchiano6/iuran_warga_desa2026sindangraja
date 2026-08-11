@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class AuthController extends Controller
+{
+    /**
+     * Tampilkan halaman Form Login
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login'); // Sesuaikan dengan path view login Anda (misal: resources/views/auth/login.blade.php)
+    }
+
+    /**
+     * Proses Autentikasi Login
+     */
+    public function login(Request $request)
+    {
+        // Validasi input dari form login
+        $credentials = $request->validate([
+            'username' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+        ]);
+
+        // Coba lakukan login
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            // Redirect ke halaman dashboard
+            return redirect()->intended('/dashboard')->with('status', 'Berhasil masuk ke sistem.');
+        }
+
+        // Jika gagal
+        return back()->withErrors([
+            'username' => 'Username atau password yang Anda masukkan salah.',
+        ])->onlyInput('username');
+    }
+
+    /**
+     * Tampilkan halaman Form Registrasi
+     */
+    public function showRegisterForm()
+    {
+        return view('auth.register'); // Sesuaikan dengan path view register Anda
+    }
+
+    /**
+     * Proses Registrasi Pengelola Baru
+     */
+    public function register(Request $request)
+    {
+        // Validasi input dari form registrasi
+        $request->validate([
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'username'     => ['required', 'string', 'max:255', 'unique:users,username'],
+            'role'         => ['required', 'in:admin,bendahara'],
+            'password'     => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'username.required'     => 'Username wajib diisi.',
+            'username.unique'       => 'Username ini sudah digunakan, silakan pilih username lain.',
+            'role.required'         => 'Role / Jabatan wajib dipilih.',
+            'role.in'               => 'Role yang dipilih tidak valid.',
+            'password.required'     => 'Password wajib diisi.',
+            'password.min'          => 'Password minimal harus 6 karakter.',
+            'password.confirmed'    => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        // Simpan data User baru ke Database
+        User::create([
+            'name'     => $request->nama_lengkap, // Menyesuaikan kolom 'name' default Laravel
+            'username' => $request->username,
+            'role'     => $request->role,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Redirect kembali ke halaman register / login dengan pesan sukses
+        return redirect()->route('register')->with('success', 'Pendaftaran akun berhasil! Silakan login.');
+    }
+
+    /**
+     * Proses Logout
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('status', 'Anda telah berhasil keluar.');
+    }
+}
