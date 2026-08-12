@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AdminDashboardController; // Sesuaikan namespace jika ada di subfolder
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\UserController; // Fixed: 'user' jadi 'use'
 
 // Halaman utama (langsung redirect ke login)
 Route::get('/', function () {
@@ -42,25 +43,26 @@ Route::middleware('auth')->group(function () {
         // Default jika role warga/lainnya
         return redirect()->route('admin.dashboard');
     })->name('dashboard');
-
-    // --------------------------------------
-    // PANEL ADMIN
-    // --------------------------------------
     Route::prefix('admin')->name('admin.')->group(function () {
-        // Mengarahkan ke controller (yang memanggil view 'admin.dashboard_admin')
+        // Dashboard Admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        // Route Tambahan Admin (Sesuai tautan Sidebar)
-        Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index');
+        // CRUD Manajemen User (UserController)
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Route Menu Lainnya (Sesuai Sidebar)
+        Route::get('/jenis-iuran', function() { return "Halaman Jenis Iuran"; })->name('jenis_iuran.index');
         Route::get('/kk', [AdminDashboardController::class, 'kk'])->name('kk.index');
         Route::get('/warga', [AdminDashboardController::class, 'warga'])->name('warga.index');
+        Route::get('/pembayaran', function() { return "Halaman Pembayaran"; })->name('pembayaran.index');
+        Route::get('/laporan', function() { return "Halaman Laporan"; })->name('laporan.index');
+        Route::get('/tagihan', function() { return "Halaman Tagihan"; })->name('tagihan.index');
     });
 
-    // --------------------------------------
-    // PANEL BENDAHARA
-    // --------------------------------------
     Route::prefix('bendahara')->name('bendahara.')->group(function () {
-        // Render langsung view dashboard_admin.blade.php jika controller khusus bendahara belum ada
         Route::get('/dashboard', function () {
             return view('admin.dashboard_admin', [
                 'totalKK'    => 0,
