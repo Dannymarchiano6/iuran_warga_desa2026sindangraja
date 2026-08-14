@@ -1,291 +1,299 @@
-<?php
-session_start();
-include 'koneksi.php';
-d
-// Cek Login Admin
-if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
-    exit;
-}
+@extends('layouts.app')
 
-/* ================= LOGIKA CRUD ================= */
-if (isset($_POST['tambah'])) {
-    $nama     = mysqli_real_escape_string($conn, $_POST['nama']);
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role     = $_POST['role'];
-    $q = mysqli_query($conn, "INSERT INTO usezs (nama_lengkap, username, password, role, created_at) VALUES ('$nama', '$username', '$password', '$role', NOW())");
-    if($q) { $_SESSION['notif'] = "User berhasil ditambahkan!"; $_SESSION['type'] = "success"; }
-    header("Location: manajemen_user.php"); exit;
-}
+@section('title', 'Manajemen User - Admin')
 
-if (isset($_POST['edit'])) {
-    $id       = intval($_POST['id_user']);
-    $nama     = mysqli_real_escape_string($conn, $_POST['nama']);
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $role     = $_POST['role'];
-    if (!empty($_POST['password'])) {
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $sql = "UPDATE users SET nama_lengkap='$nama', username='$username', password='$password', role='$role' WHERE id_user='$id'";
-    } else {
-        $sql = "UPDATE users SET nama_lengkap='$nama', username='$username', role='$role' WHERE id_user='$id'";
-    }
-    if(mysqli_query($conn, $sql)) { $_SESSION['notif'] = "User berhasil diperbarui!"; $_SESSION['type'] = "info"; }
-    header("Location: manajemen_user.php"); exit;
-}
-
-if (isset($_GET['hapus'])) {
-    $id = intval($_GET['hapus']);
-    if ($id == $_SESSION['id_user']) {
-        $_SESSION['notif'] = "Tidak bisa hapus akun sendiri!"; $_SESSION['type'] = "danger";
-    } else {
-        mysqli_query($conn, "DELETE FROM users WHERE id_user='$id'");
-        $_SESSION['notif'] = "User berhasil dihapus!"; $_SESSION['type'] = "warning";
-    }
-    header("Location: manajemen_user.php"); exit;
-}
-
-$users = mysqli_query($conn, "SELECT * FROM users ORDER BY id_user DESC");
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen User - Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-        body { background: #f4f7f6; font-family: 'Poppins', sans-serif; }
-
-        /* SIDEBAR */
-        .sidebar { width: 240px; position: fixed; top: 0; bottom: 0; background: #1a1c23; z-index: 1001; }
-        .sidebar .brand { padding: 20px; color: white; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; }
-        .menu-label { font-size: 0.65rem; text-transform: uppercase; color: #4e5d78; padding: 25px 25px 10px; font-weight: 700; letter-spacing: 1px; }
-        .sidebar .nav-link { color: #9ea4b0; padding: 12px 25px; display: flex; align-items: center; text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
-        .sidebar .nav-link i { margin-right: 15px; font-size: 1.2rem; }
-        .sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .sidebar .nav-link.active { background: #0d6efd; color: #fff; }
-
-        /* TOPBAR */
-        .topbar { background: #0d6efd; height: 60px; position: fixed; top: 0; right: 0; left: 240px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
-        .topbar .title { color: white; font-weight: 600; font-size: 1rem; }
-        .user-info { display: flex; align-items: center; gap: 15px; color: white; }
-        .btn-logout { background: #ffc107; color: #000 !important; font-weight: 700; padding: 5px 15px; border-radius: 6px; font-size: 0.8rem; text-decoration: none; }
-
-        /* CONTENT */
-        .main-content { margin-left: 240px; padding-top: 60px; }
-        .page-header { padding: 30px; }
-        .content-body { padding: 0 30px 30px; }
-
-        .card-custom { background: white; border-radius: 15px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.03); }
-        .table thead th { background: #fff; color: #0d6efd; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 15px; border-bottom: 1px solid #f1f1f1; }
-        .table td { padding: 15px; vertical-align: middle; font-size: 0.85rem; }
-
-        /* MODAL STYLING */
-        .modal-content { border-radius: 20px !important; border: none; }
-        .form-label-custom { font-size: 0.75rem; font-weight: 700; color: #4e5d78; text-transform: uppercase; margin-bottom: 5px; }
-        .input-group-text { border: none; background: #f8f9fa; color: #6c757d; }
-        .box-warning-pw { background: #fff5f5; border: 1px dashed #feb2b2; border-radius: 12px; padding: 15px; }
-
-        /* BADGES */
-        .badge-role { padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-        .badge-admin { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
-        .badge-bendahara { background: rgba(217, 119, 6, 0.1); color: #d97706; }
-        .badge-warga { background: rgba(2, 132, 199, 0.1); color: #0284c7; }
-        .btn-action { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
-    </style>
-</head>
-<body>
-
-<div class="sidebar">
-    <div class="brand"><i class="bi bi-wallet2 me-2"></i> Master Data Iuran</div>
-    <div class="menu-label">Menu Utama</div>
-    <a href="dashboard_admin.php" class="nav-link"><i class="bi bi-grid"></i> Dashboard</a>
-    <a href="manajemen_user.php" class="nav-link active"><i class="bi bi-people"></i> Manajemen User</a>
-    <a href="data_kk.php" class="nav-link"><i class="bi bi-journal-bookmark"></i> Data KK</a>
-</div>
-
-<div class="topbar">
-    <div class="title">Pengaturan Pengguna</div>
-    <div class="user-info">
-        <span class="small"><i class="bi bi-person-circle me-1"></i> <?= htmlspecialchars($_SESSION['nama']) ?></span>
-        <a href="logout.php" class="btn-logout" onclick="return confirm('Logout?')">Logout</a>
-    </div>
-</div>
-
-<div class="main-content">
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <div>
-            <h2 class="fw-bold m-0">Manajemen User</h2>
-            <p class="text-muted small mb-0">Atur hak akses Admin, Bendahara, dan Warga.</p>
+@section('content')
+<!-- Topbar Navigation -->
+<nav class="fixed top-0 z-30 w-full border-b border-blue-600 bg-blue-600 px-4 py-3 text-white transition-all duration-300 sm:pl-64">
+    <div class="flex items-center justify-between">
+        <!-- Mobile Sidebar Toggle -->
+        <div class="flex items-center justify-start">
+            <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center rounded-lg p-2 text-sm text-blue-100 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:hidden">
+                <span class="sr-only">Open sidebar</span>
+                <i class="bi bi-list text-2xl"></i>
+            </button>
+            <span class="ml-2 text-base font-semibold text-white sm:text-lg">Pengaturan Pengguna</span>
         </div>
-        <button class="btn btn-primary px-4 py-2 fw-bold shadow-sm" style="border-radius:10px" data-bs-toggle="modal" data-bs-target="#modalTambah">
-            <i class="bi bi-person-plus-fill me-1"></i> Tambah User
+
+        <!-- User Info & Logout -->
+        <div class="flex items-center gap-3 sm:gap-4">
+            <span class="flex items-center text-xs font-medium text-white sm:text-sm">
+                <i class="bi bi-person-circle me-1.5 text-base"></i>
+                Admin: {{ Auth::user()->nama_lengkap ?? Auth::user()->username ?? session('nama', 'Admin') }}
+            </span>
+            <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Keluar dari sistem?')">
+                @csrf
+                <button type="submit" class="rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-bold text-gray-900 transition-all duration-200 hover:bg-amber-300 hover:shadow-md focus:ring-2 focus:ring-amber-200 active:scale-95">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar Navigation -->
+<aside id="logo-sidebar" class="fixed left-0 top-0 z-40 h-screen w-64 -translate-x-full border-r border-gray-800 bg-[#1a1c23] transition-transform duration-300 ease-in-out sm:translate-x-0" aria-label="Sidebar">
+    <div class="flex h-full flex-col overflow-y-auto px-0 py-0">
+        <!-- Brand -->
+        <div class="flex h-[60px] items-center border-b border-white/5 px-6 font-semibold text-white text-lg">
+            <i class="bi bi-wallet2 me-2.5 text-blue-500"></i> Master Data Iuran
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="flex-1 space-y-1 py-4">
+            <div class="px-6 pb-2 text-[0.65rem] font-bold uppercase tracking-wider text-[#4e5d78]">
+                Menu Utama
+            </div>
+
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'text-[#9ea4b0] hover:bg-white/5 hover:text-white' }}">
+                <i class="bi bi-grid me-3.5 text-lg"></i> Dashboard
+            </a>
+
+            <a href="{{ route('admin.users.index') }}" class="flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'text-[#9ea4b0] hover:bg-white/5 hover:text-white' }}">
+                <i class="bi bi-people me-3.5 text-lg"></i> Manajemen User
+            </a>
+
+            <a href="{{ route('admin.kk.index') }}" class="flex items-center px-6 py-3 text-sm font-medium text-[#9ea4b0] transition-colors duration-200 hover:bg-white/5 hover:text-white">
+                <i class="bi bi-journal-bookmark me-3.5 text-lg"></i> Data KK
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- Main Body Area -->
+<div class="min-h-screen bg-[#f4f7f6] pt-[60px] transition-all duration-300 sm:ml-64">
+
+    <!-- Header Page & Add Button -->
+    <div class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-7">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Manajemen User</h2>
+            <p class="mt-1 text-sm text-gray-500">Atur hak akses Admin, Bendahara, dan Warga.</p>
+        </div>
+        <button onclick="openModal('modalTambah')" type="button" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95">
+            <i class="bi bi-person-plus-fill me-2 text-base"></i> Tambah User
         </button>
     </div>
 
-    <div class="content-body">
-        <?php if(isset($_SESSION['notif'])): ?>
-            <div class="alert alert-<?= $_SESSION['type'] ?> border-0 shadow-sm mb-4">
-                <i class="bi bi-info-circle-fill me-2"></i> <?= $_SESSION['notif']; unset($_SESSION['notif'], $_SESSION['type']); ?>
-            </div>
-        <?php endif; ?>
+    <!-- Main Content Area -->
+    <div class="px-6 pb-8 sm:px-8">
 
-        <div class="card-custom p-3 mb-4">
-            <div class="input-group">
-                <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" id="searchUser" class="form-control bg-light border-0" placeholder="Cari nama atau username...">
+        <!-- Flash Alert Notification -->
+        @if (session('notif'))
+            <div class="mb-6 flex items-center rounded-2xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800 shadow-sm" role="alert">
+                <i class="bi bi-info-circle-fill me-3 text-xl"></i>
+                <span class="font-semibold">{{ session('notif') }}</span>
+            </div>
+        @endif
+
+        <!-- Search Card Bar -->
+        <div class="mb-6 rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
+            <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="bi bi-search text-gray-400"></i>
+                </div>
+                <input type="text" id="searchUser" class="block w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" placeholder="Cari nama atau username...">
             </div>
         </div>
 
-        <div class="card-custom overflow-hidden">
-            <div class="table-responsive">
-                <table class="table m-0" id="userTable">
-                    <thead>
+        <!-- Table User Card -->
+        <div class="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600" id="userTable">
+                    <thead class="bg-slate-50 text-[0.7rem] font-bold uppercase tracking-wider text-slate-400 border-b border-gray-100">
                         <tr>
-                            <th class="text-center">NO</th>
-                            <th>NAMA PENGGUNA</th>
-                            <th>USERNAME</th>
-                            <th>HAK AKSES</th>
-                            <th class="text-center">AKSI</th>
+                            <th scope="col" class="px-6 py-4 text-center">NO</th>
+                            <th scope="col" class="px-6 py-4">NAMA PENGGUNA</th>
+                            <th scope="col" class="px-6 py-4">USERNAME</th>
+                            <th scope="col" class="px-6 py-4">HAK AKSES</th>
+                            <th scope="col" class="px-6 py-4 text-center">AKSI</th>
                         </tr>
                     </thead>
-                    <tbody>
-                       <?php $no=1; while($u=mysqli_fetch_assoc($users)): ?>
-    <tr>
-        <td class="text-center text-muted small"><?= $no++ ?></td>
-        <td>
-            <div class="fw-bold text-dark"><?= htmlspecialchars($u['nama_lengkap']) ?></div>
-            <div style="font-size: 0.7rem;" class="text-muted">Sejak: <?= date('d M Y', strtotime($u['created_at'])) ?></div>
-        </td>
-        <td><code class="text-primary fw-bold"><?= htmlspecialchars($u['username']) ?></code></td>
-        <td>
-            <span class="badge-role badge-<?= $u['role'] ?>">
-                <i class="bi bi-shield-lock me-1"></i> <?= strtoupper($u['role']) ?>
-            </span>
-        </td>
-        <td class="text-center">
-            <div class="d-flex justify-content-center gap-1">
-                <button type="button" class="btn btn-outline-primary btn-action" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $u['id_user'] ?>">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <a href="?hapus=<?= $u['id_user'] ?>" class="btn btn-outline-danger btn-action" onclick="return confirm('Hapus user ini?')">
-                    <i class="bi bi-trash"></i>
-                </a>
-            </div>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse ($users as $index => $u)
+                            <tr class="transition-colors duration-150 hover:bg-slate-50/70">
+                                <td class="whitespace-nowrap px-6 py-4 text-center text-xs text-gray-400 font-mono">
+                                    {{ $index + 1 }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <div class="font-semibold text-gray-900">{{ $u->nama_lengkap }}</div>
+                                    <div class="text-[0.7rem] text-gray-400 mt-0.5">
+                                        Sejak: {{ $u->created_at ? \Carbon\Carbon::parse($u->created_at)->format('d M Y') : '-' }}
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <code class="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-blue-600 border border-slate-200 font-bold">{{ $u->username }}</code>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    @php
+                                        $role = strtolower($u->role);
+                                        $badgeClass = match($role) {
+                                            'admin' => 'bg-red-50 text-red-600 border-red-200',
+                                            'bendahara' => 'bg-amber-50 text-amber-600 border-amber-200',
+                                            default => 'bg-blue-50 text-blue-600 border-blue-200',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold uppercase {{ $badgeClass }}">
+                                        <i class="bi bi-shield-lock me-1.5"></i> {{ strtoupper($u->role) }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <!-- Tombol Edit dengan JS Trigger Universal -->
+                                        <button onclick="openModal('modalEdit{{ $u->id_user }}')" type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-600 hover:text-white shadow-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
 
-            <div class="modal fade" id="modalEdit<?= $u['id_user'] ?>" tabindex="-1" aria-labelledby="modalEditLabel<?= $u['id_user'] ?>" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <form method="POST" class="modal-content shadow-lg text-start">
-                        <div class="modal-header border-0 pt-4 px-4 pb-2">
-                            <h5 class="fw-bold m-0"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Akun</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <input type="hidden" name="id_user" value="<?= $u['id_user'] ?>">
-
-                            <div class="mb-3">
-                                <label class="form-label-custom">Nama Lengkap</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input name="nama" class="form-control bg-light border-0 py-2" value="<?= htmlspecialchars($u['nama_lengkap']) ?>" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label-custom">Username</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-at"></i></span>
-                                    <input name="username" class="form-control bg-light border-0 py-2" value="<?= htmlspecialchars($u['username']) ?>" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label-custom">Role Akses</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-                                    <select name="role" class="form-select bg-light border-0 py-2">
-                                        <option value="admin" <?= $u['role']=='admin'?'selected':'' ?>>Admin</option>
-                                        <option value="bendahara" <?= $u['role']=='bendahara'?'selected':'' ?>>Bendahara</option>
-                                        <option value="warga" <?= $u['role']=='warga'?'selected':'' ?>>Warga</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="box-warning-pw">
-                                <label class="form-label small fw-bold text-danger"><i class="bi bi-key me-1"></i> Ganti Password?</label>
-                                <input type="password" name="password" class="form-control border-0 mt-1" placeholder="Kosongkan jika tidak diganti">
-                                <small class="text-muted" style="font-size: 0.65rem;">Biarkan kosong jika tetap menggunakan password lama.</small>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-0 p-4 pt-0">
-                            <button type="submit" name="edit" class="btn btn-primary w-100 py-2 fw-bold" style="border-radius:12px">SIMPAN PERUBAHAN</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </td>
-    </tr>
-    <?php endwhile; ?>
+                                        <!-- Form Delete CRUD -->
+                                        <form method="POST" action="{{ route('admin.users.destroy', $u->id_user) }}" onsubmit="return confirm('Hapus user ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-600 hover:text-white shadow-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-400">
+                                    <i class="bi bi-inbox text-3xl block mb-2 opacity-50"></i>
+                                    Belum ada data user terdaftar.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
-<div class="modal fade" id="modalTambah" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" class="modal-content shadow-lg">
-            <div class="modal-header border-0 pt-4 px-4 pb-2">
-                <h5 class="fw-bold m-0 text-primary"><i class="bi bi-person-plus-fill me-2"></i>User Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- ========================================== -->
+<!-- MODAL-MODAL DITARUH DI LUAR TABEL (SOLUSI BUG) -->
+<!-- ========================================== -->
+
+<!-- MODAL TAMBAH USER -->
+<div id="modalTambah" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 backdrop-blur-sm">
+    <div class="relative max-h-full w-full max-w-md">
+        <div class="relative rounded-2xl bg-white shadow-xl border border-gray-100">
+            <div class="flex items-center justify-between p-4 border-b border-gray-100">
+                <h3 class="text-base font-bold text-blue-600 flex items-center">
+                    <i class="bi bi-person-plus-fill me-2"></i> User Baru
+                </h3>
+                <button type="button" onclick="closeModal('modalTambah')" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
-            <div class="modal-body p-4">
-                <div class="mb-3">
-                    <label class="form-label-custom">Nama Lengkap</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input name="nama" class="form-control bg-light border-0 py-2" placeholder="Nama asli" required>
-                    </div>
+            <form method="POST" action="{{ route('admin.users.store') }}" class="p-6">
+                @csrf
+                <div class="mb-4">
+                    <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Nama Lengkap</label>
+                    <input type="text" name="nama_lengkap" placeholder="Nama asli" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" required>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label-custom">Username</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-at"></i></span>
-                        <input name="username" class="form-control bg-light border-0 py-2" placeholder="Untuk login" required>
-                    </div>
+
+                <div class="mb-4">
+                    <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Username</label>
+                    <input type="text" name="username" placeholder="Untuk login" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" required>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label-custom">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-key"></i></span>
-                        <input type="password" name="password" class="form-control bg-light border-0 py-2" placeholder="Min. 6 karakter" required>
-                    </div>
+
+                <div class="mb-4">
+                    <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Password</label>
+                    <input type="password" name="password" placeholder="Min. 6 karakter" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" required>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label-custom">Role</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-                        <select name="role" class="form-select bg-light border-0 py-2" required>
-                            <option value="admin">Admin</option>
-                            <option value="bendahara">Bendahara</option>
-                            <option value="warga">Warga</option>
+
+                <div class="mb-6">
+                    <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Role</label>
+                    <select name="role" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" required>
+                        <option value="admin">Admin</option>
+                        <option value="bendahara">Bendahara</option>
+                        <option value="warga">Warga</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeModal('modalTambah')" class="w-1/3 rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-600 transition-all hover:bg-gray-200">
+                        BATAL
+                    </button>
+                    <button type="submit" class="w-2/3 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm">
+                        DAFTARKAN
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- LOOP MODAL EDIT USER -->
+@foreach ($users as $u)
+    <div id="modalEdit{{ $u->id_user }}" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 backdrop-blur-sm">
+        <div class="relative max-h-full w-full max-w-md">
+            <div class="relative rounded-2xl bg-white shadow-xl text-left border border-gray-100">
+                <div class="flex items-center justify-between p-4 border-b border-gray-100">
+                    <h3 class="text-base font-bold text-gray-900 flex items-center">
+                        <i class="bi bi-pencil-square text-blue-600 me-2"></i> Edit Akun
+                    </h3>
+                    <button type="button" onclick="closeModal('modalEdit{{ $u->id_user }}')" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <form method="POST" action="{{ route('admin.users.update', $u->id_user) }}" class="p-6">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="mb-4">
+                        <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Nama Lengkap</label>
+                        <input type="text" name="nama_lengkap" value="{{ $u->nama_lengkap }}" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Username</label>
+                        <input type="text" name="username" value="{{ $u->username }}" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1 text-xs font-bold uppercase text-gray-600">Role Akses</label>
+                        <select name="role" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                            <option value="admin" {{ strtolower($u->role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="bendahara" {{ strtolower($u->role) == 'bendahara' ? 'selected' : '' }}>Bendahara</option>
+                            <option value="warga" {{ strtolower($u->role) == 'warga' ? 'selected' : '' }}>Warga</option>
                         </select>
                     </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 p-4 pt-0">
-                <button name="tambah" class="btn btn-primary w-100 py-2 fw-bold" style="border-radius:12px">DAFTARKAN SEKARANG</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+                    <div class="p-4 rounded-xl bg-red-50 border border-dashed border-red-200 mb-6">
+                        <label class="block text-xs font-bold text-red-600 mb-1">
+                            <i class="bi bi-key me-1"></i> Ganti Password?
+                        </label>
+                        <input type="password" name="password" placeholder="Kosongkan jika tidak diganti" class="w-full rounded-lg border border-gray-200 bg-white p-2 text-sm text-gray-900 focus:border-red-500 focus:ring-red-500">
+                        <p class="mt-1 text-[0.65rem] text-gray-500">Biarkan kosong jika tetap menggunakan password lama.</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="closeModal('modalEdit{{ $u->id_user }}')" class="w-1/3 rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-600 transition-all hover:bg-gray-200">
+                            BATAL
+                        </button>
+                        <button type="submit" class="w-2/3 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm">
+                            SIMPAN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endforeach
+
 <script>
+    // Universal Modal Opener / Closer
+    function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
+
+    // Live Search Table Functionality
     document.getElementById("searchUser").addEventListener("keyup", function() {
         let value = this.value.toLowerCase();
         let rows = document.querySelectorAll("#userTable tbody tr");
@@ -295,5 +303,4 @@ $users = mysqli_query($conn, "SELECT * FROM users ORDER BY id_user DESC");
         });
     });
 </script>
-</body>
-</html>
+@endsection

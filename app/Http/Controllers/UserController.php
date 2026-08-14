@@ -9,11 +9,20 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    /**
+     * Tampilkan Halaman Manajemen User
+     */
     public function index()
     {
         $users = User::orderBy('id_user', 'desc')->get();
-        return view('admin.users.index', compact('users'));
+
+        // POINT PERBAIKAN: Sesuaikan dengan nama file manajemenuser.blade.php
+        return view('admin.manajemenuser', compact('users'));
     }
+
+    /**
+     * Tambah User Baru
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -32,6 +41,10 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('notif', 'User berhasil ditambahkan!');
     }
+
+    /**
+     * Update Data User
+     */
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -57,6 +70,10 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('notif', 'User berhasil diperbarui!');
     }
+
+    /**
+     * Hapus User
+     */
     public function destroy($id)
     {
         if (Auth::user()->id_user == $id) {
