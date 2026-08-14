@@ -1,7 +1,7 @@
 <?php
 session_start();
 include 'koneksi.php';
-
+d
 // Cek Login Admin
 if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
@@ -14,7 +14,7 @@ if (isset($_POST['tambah'])) {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $role     = $_POST['role'];
-    $q = mysqli_query($conn, "INSERT INTO users (nama_lengkap, username, password, role, created_at) VALUES ('$nama', '$username', '$password', '$role', NOW())");
+    $q = mysqli_query($conn, "INSERT INTO usezs (nama_lengkap, username, password, role, created_at) VALUES ('$nama', '$username', '$password', '$role', NOW())");
     if($q) { $_SESSION['notif'] = "User berhasil ditambahkan!"; $_SESSION['type'] = "success"; }
     header("Location: manajemen_user.php"); exit;
 }
