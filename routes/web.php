@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\UserController; // Fixed: 'user' jadi 'use'
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\KartuKeluargaController;
 
 // Halaman utama (langsung redirect ke login)
 Route::get('/', function () {
@@ -71,6 +72,21 @@ Route::middleware('auth')->group(function () {
                 'wargaBaru'  => collect([])
             ]);
         })->name('dashboard');
+    });
+
+});
+Route::middleware('auth')->group(function () {
+
+    // PANEL ADMIN
+    Route::prefix('admin')->name('admin.')->group(function () {
+        // ...
+
+        // CRUD Data KK
+        Route::get('/kk', [KartuKeluargaController::class, 'index'])->name('kk.index');
+        Route::post('/kk', [KartuKeluargaController::class, 'store'])->name('kk.store');
+        Route::put('/kk/{id}', [KartuKeluargaController::class, 'update'])->name('kk.update');
+        Route::delete('/kk/{id}', [KartuKeluargaController::class, 'destroy'])->name('kk.destroy');
+        Route::post('/kk/anggota', [KartuKeluargaController::class, 'storeAnggota'])->name('kk.store_anggota');
     });
 
 });
