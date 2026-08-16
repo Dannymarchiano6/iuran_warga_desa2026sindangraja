@@ -90,3 +90,15 @@ Route::middleware('auth')->group(function () {
     });
 
 });
+
+// Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+//     // Menu Utama Admin
+//     Route::get('/menu-utama', function () {
+//         return view('admin.menu_utama');
+//     })->name('menu');
+
+//     // Dashboard & Menu Lainnya
+//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+//     Route::get('/kk', [KartuKeluargaController::class, 'index'])->name('kk.index');
+//     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+// });
