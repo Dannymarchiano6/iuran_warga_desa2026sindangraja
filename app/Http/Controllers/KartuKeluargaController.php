@@ -37,21 +37,22 @@ class KartuKeluargaController extends Controller
         $request->validate([
             'no_kk'  => 'required|numeric|digits:16|unique:kartu_keluarga,no_kk',
             'alamat' => 'nullable|string',
-            'rt'     => 'nullable|string|max:5',
-            'rw'     => 'nullable|string|max:5',
+            'rt'     => 'nullable|string|max:3',
+            'rw'     => 'nullable|string|max:3',
         ], [
             'no_kk.required' => 'Nomor KK wajib diisi.',
             'no_kk.numeric'  => 'Nomor KK harus berupa angka.',
             'no_kk.digits'   => 'Nomor KK wajib persis 16 digit angka!',
             'no_kk.unique'   => 'Nomor KK ini sudah terdaftar di sistem!',
+            'rt.max'         => 'Nomor RT maksimal 3 digit/karakter.',
+            'rw.max'         => 'Nomor RW maksimal 3 digit/karakter.',
         ]);
 
         DB::table('kartu_keluarga')->insert([
-            'no_kk'      => $request->no_kk,
-            'alamat'     => $request->alamat,
-            'rt'         => $request->rt,
-            'rw'         => $request->rw,
-            'created_at' => now(),
+            'no_kk'  => $request->no_kk,
+            'alamat' => $request->alamat,
+            'rt'     => $request->rt,
+            'rw'     => $request->rw,
         ]);
 
         return redirect()->route('admin.kk.index')->with('notif', 'Data KK berhasil ditambahkan!');
@@ -70,13 +71,15 @@ class KartuKeluargaController extends Controller
                 Rule::unique('kartu_keluarga', 'no_kk')->ignore($id, 'id_kk')
             ],
             'alamat' => 'nullable|string',
-            'rt'     => 'nullable|string|max:5',
-            'rw'     => 'nullable|string|max:5',
+            'rt'     => 'nullable|string|max:3',
+            'rw'     => 'nullable|string|max:3',
         ], [
             'no_kk.required' => 'Nomor KK wajib diisi.',
             'no_kk.numeric'  => 'Nomor KK harus berupa angka.',
             'no_kk.digits'   => 'Nomor KK wajib persis 16 digit angka!',
             'no_kk.unique'   => 'Nomor KK ini sudah digunakan oleh data KK lain!',
+            'rt.max'         => 'Nomor RT maksimal 3 digit/karakter.',
+            'rw.max'         => 'Nomor RW maksimal 3 digit/karakter.',
         ]);
 
         DB::table('kartu_keluarga')
@@ -108,14 +111,17 @@ class KartuKeluargaController extends Controller
     public function storeAnggota(Request $request)
     {
         $request->validate([
-            'id_kk' => 'required',
+            'id_kk' => 'required|exists:kartu_keluarga,id_kk',
             'nik'   => 'required|numeric|digits:16|unique:warga,nik',
             'nama'  => 'required|string|max:255',
         ], [
-            'nik.required' => 'NIK wajib diisi.',
-            'nik.numeric'  => 'NIK harus berupa angka.',
-            'nik.digits'   => 'NIK wajib persis 16 digit angka!',
-            'nik.unique'   => 'NIK ini sudah terdaftar sebagai warga!',
+            'id_kk.required' => 'ID KK tidak valid.',
+            'id_kk.exists'   => 'Data Kartu Keluarga tidak ditemukan.',
+            'nik.required'   => 'NIK wajib diisi.',
+            'nik.numeric'    => 'NIK harus berupa angka.',
+            'nik.digits'     => 'NIK wajib persis 16 digit angka!',
+            'nik.unique'     => 'NIK ini sudah terdaftar sebagai warga!',
+            'nama.required'  => 'Nama anggota wajib diisi.',
         ]);
 
         DB::table('warga')->insert([
