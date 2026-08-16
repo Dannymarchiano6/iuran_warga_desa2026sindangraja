@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Registrasi Pengelola - Sistem Iuran Desa Sindangraja</title>
+    <title>Registrasi Akun - Sistem Iuran Desa Sindangraja</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Tailwind CSS & Flowbite CDN -->
@@ -33,10 +33,9 @@
         }
     </style>
 </head>
-<!-- FIX LAYOUT: Menggunakan overflow-y-auto & py-8 agar responsif saat layar menyempit -->
 <body class="font-sans antialiased min-h-screen flex items-center justify-center p-4 py-8 relative overflow-y-auto">
 
-    <!-- Ornamen Background Dekorasif 3D (dibuat fixed agar tidak mengacaukan scrollbar) -->
+    <!-- Ornamen Background Dekorasif 3D -->
     <div class="fixed -top-24 -left-20 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="fixed -bottom-24 -right-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -49,11 +48,11 @@
                 <div class="inline-flex items-center justify-center p-3 bg-gradient-to-tr from-blue-50 to-indigo-50 rounded-2xl shadow-inner mb-3 transform hover:scale-105 transition-transform duration-300 border border-blue-100/50">
                     <img src="{{ asset('assets/logodesa.png') }}" alt="Logo Desa" class="w-14 h-auto drop-shadow-md" onerror="this.src='https://flowbite.com/docs/images/logo.svg'">
                 </div>
-                <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Registrasi Pengelola</h2>
+                <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Registrasi Akun</h2>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Lengkapi data untuk akses aplikasi</p>
             </div>
 
-            <!-- Session Alert Success / Error Custom -->
+            <!-- Session Alert Success -->
             @if (session('success'))
                 <div id="alert-success" class="flex flex-col p-4 mb-6 text-sm text-green-800 rounded-2xl bg-green-50/80 border border-green-200/60 backdrop-blur-sm" role="alert">
                     <div class="flex items-center">
@@ -68,6 +67,7 @@
                 </div>
             @endif
 
+            <!-- Session Alert Errors -->
             @if ($errors->any())
                 <div id="alert-error" class="flex items-center p-4 mb-6 text-sm text-red-800 rounded-2xl bg-red-50/80 border border-red-200/60 backdrop-blur-sm" role="alert">
                     <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -119,23 +119,6 @@
                         <input type="text" name="username" id="username" value="{{ old('username') }}" required
                             class="bg-slate-50/80 border border-slate-200/80 text-slate-800 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-3 transition-all duration-200 shadow-inner placeholder-slate-400"
                             placeholder="username123">
-                    </div>
-                </div>
-
-                <!-- Select Role -->
-                <div>
-                    <label for="role" class="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Role / Jabatan</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none text-slate-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 132.55A11.959 11.959 0 0112 21c-3.239 0-6.16-1.281-8.318-3.352M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                            </svg>
-                        </div>
-                        <select name="role" id="role" required class="bg-slate-50/80 border border-slate-200/80 text-slate-800 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-3 transition-all duration-200 shadow-inner">
-                            <option value="" disabled {{ old('role') ? '' : 'selected' }}>-- Pilih Akses --</option>
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator (Data Warga)</option>
-                            <option value="bendahara" {{ old('role') == 'bendahara' ? 'selected' : '' }}>Bendahara (Keuangan)</option>
-                        </select>
                     </div>
                 </div>
 

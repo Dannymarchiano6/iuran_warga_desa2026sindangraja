@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -14,7 +15,7 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        // Jika user sudah login, langsung arahkan ke dashboard sesuai role
+        // Jika user sudah login, langsung arahkan ke halaman sesuai role
         if (Auth::check()) {
             return $this->redirectBasedOnRole(Auth::user());
         }
@@ -39,7 +40,7 @@ class AuthController extends Controller
         // Tangkap status "remember me" dari checkbox
         $remember = $request->boolean('remember');
 
-        // Coba lakukan login
+        // Coba lakukan login via Auth Laravel
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
@@ -62,15 +63,16 @@ class AuthController extends Controller
     protected function redirectBasedOnRole($user)
     {
         if ($user->role === 'admin') {
-            return redirect()->intended(route('admin.dashboard'));
+            // Arahkan admin langsung ke Portal Menu Utama
+            return redirect()->intended(route('admin.menu'));
         }
 
         if ($user->role === 'bendahara') {
             return redirect()->intended(route('bendahara.dashboard'));
         }
 
-        // Fallback default jika role tidak terdefinisi
-        return redirect()->intended(route('dashboard'));
+        // Fallback default jika role warga/lainnya
+        return redirect()->intended(route('home'));
     }
 
     /**
@@ -82,32 +84,29 @@ class AuthController extends Controller
     }
 
     /**
-     * Proses Registrasi Pengelola Baru
+     * Proses Registrasi Warga Baru (Tanpa Pilihan Role)
      */
     public function register(Request $request)
     {
-        // Validasi input dari form registrasi
+        // Validasi input dari form registrasi (Role di-set otomatis)
         $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'username'     => ['required', 'string', 'max:255', 'unique:users,username'],
-            'role'         => ['required', 'in:admin,bendahara'],
             'password'     => ['required', 'string', 'min:6', 'confirmed'],
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'username.required'     => 'Username wajib diisi.',
             'username.unique'       => 'Username ini sudah digunakan, silakan pilih username lain.',
-            'role.required'         => 'Role / Jabatan wajib dipilih.',
-            'role.in'               => 'Role yang dipilih tidak valid.',
             'password.required'     => 'Password wajib diisi.',
             'password.min'          => 'Password minimal harus 6 karakter.',
             'password.confirmed'    => 'Konfirmasi password tidak cocok.',
         ]);
 
-        // Simpan data User baru ke Database
-        User::create([
-            'nama_lengkap' => $request->nama_lengkap, // <-- Ubah 'name' jadi 'nama_lengkap'
+        // Simpan ke Database (Role default otomatis = 'warga')
+        DB::table('users')->insert([
+            'nama_lengkap' => $request->nama_lengkap,
             'username'     => $request->username,
-            'role'         => $request->role,
+            'role'         => 'warga', // Role otomatis diset sebagai warga
             'password'     => Hash::make($request->password),
         ]);
 
