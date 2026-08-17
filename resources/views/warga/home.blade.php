@@ -9,7 +9,6 @@
     <style>
         .hover-card { transition: all 0.3s ease; }
         .hover-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .map-placeholder { background: linear-gradient(45deg, #e2e8f0, #cbd5e1); }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
@@ -23,9 +22,9 @@
                 </div>
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="#" class="text-gray-600 hover:text-blue-600 font-medium">Beranda</a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600 font-medium">Info Desa</a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600 font-medium">Layanan</a>
-                    <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Login Warga</a>
+                    <a href="#lokasi-desa" class="text-gray-600 hover:text-blue-600 font-medium">Info Desa</a>
+                    <a href="#layanan" class="text-gray-600 hover:text-blue-600 font-medium">Layanan</a>
+                    <a href="{{ route('login') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Login Warga</a>
                 </div>
             </div>
         </div>
@@ -51,7 +50,7 @@
     <main class="max-w-7xl mx-auto px-4 py-12">
 
         <!-- Service Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div id="layanan" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             <!-- Card 1 -->
             <div class="bg-white p-6 rounded-2xl border border-gray-100 hover-card">
                 <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 text-2xl"><i class="bi bi-credit-card"></i></div>
@@ -79,20 +78,30 @@
         </div>
 
         <!-- Section Info & Map -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div id="lokasi-desa" class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
                 <h2 class="text-3xl font-bold mb-6">Informasi & Lokasi Desa</h2>
                 <p class="text-gray-600 mb-6 leading-relaxed">
                     Kami hadir untuk memudahkan akses layanan warga. Kantor desa Sindangraja berlokasi strategis untuk melayani administrasi warga setiap hari kerja. Pastikan NIK Anda terdaftar untuk mengakses seluruh fitur layanan kami.
                 </p>
-                <div class="space-y-4">
-                    <div class="flex items-center"><i class="bi bi-geo-alt-fill text-blue-600 me-3"></i> <span>Jl. Desa Sindangraja, Cianjur, Jawa Barat</span></div>
-                    <div class="flex items-center"><i class="bi bi-telephone-fill text-blue-600 me-3"></i> <span>(0263) 12345678</span></div>
+                <div class="space-y-4 mb-6">
+                    <div class="flex items-center"><i class="bi bi-geo-alt-fill text-blue-600 me-3 text-xl"></i> <span>Desa Sindangraja, Kec. Sukaluyu, Kab. Cianjur, Jawa Barat</span></div>
+                    <div class="flex items-center"><i class="bi bi-telephone-fill text-blue-600 me-3 text-xl"></i> <span>(0263) 12345678</span></div>
                 </div>
+                <a href="https://maps.google.com/?q=Sindangraja+Sukaluyu+Cianjur" target="_blank" class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 font-semibold px-4 py-2.5 rounded-xl border border-blue-200 hover:bg-blue-100 transition">
+                    <i class="bi bi-box-arrow-up-right"></i> Buka di Google Maps
+                </a>
             </div>
-            <!-- Map Placeholder -->
-            <div class="map-placeholder h-80 rounded-3xl flex items-center justify-center shadow-inner border-4 border-white">
-                <p class="text-gray-500 font-medium"><i class="bi bi-map text-4xl block mb-2"></i> Peta Lokasi Kantor Desa</p>
+
+            <!-- Google Maps Embed Interactive Container -->
+            <div class="relative w-full h-80 rounded-3xl overflow-hidden shadow-lg border-4 border-white">
+                <iframe
+                    class="w-full h-full border-0"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3961.571431057497!2d107.1953!3d-6.8219!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68525e98544c01%3A0x501e8f1fc9717e0!2sSindangraja%2C%20Kec.%20Sukaluyu%2C%20Kabupaten%20Cianjur%2C%20Jawa%20Barat!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
             </div>
         </div>
     </main>
