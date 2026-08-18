@@ -16,16 +16,16 @@
     <!-- Tailwind CSS & Flowbite JS via Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Script Anti Back-History Browser Cache -->
+    <!-- Script Anti Back-History Cache Sederhana (Tanpa Lock pushState) -->
     <script>
-        // Deteksi jika halaman dipanggil ulang dari cache memori browser (Tombol Back Browser)
+        // Deteksi jika halaman dipanggil dari cache memori browser saat tombol Back ditekan
         window.addEventListener("pageshow", function (event) {
             var historyTraversal = event.persisted ||
                 (typeof window.performance != "undefined" && window.performance.navigation.type === 2);
 
             if (historyTraversal) {
-                // Paksa redirect ke halaman utama warga (home.blade.php / public.home)
-                window.location.href = "{{ route('public.home') }}";
+                // Refresh halaman agar Laravel mengecek ulang session auth di server
+                window.location.reload();
             }
         });
     </script>

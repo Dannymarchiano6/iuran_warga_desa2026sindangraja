@@ -33,10 +33,9 @@
         }
     </style>
 </head>
-<!-- FIX LAYOUT: Menggunakan overflow-y-auto & py-8 agar responsif saat layar menyempit -->
 <body class="font-sans antialiased min-h-screen flex items-center justify-center p-4 py-8 relative overflow-y-auto">
 
-    <!-- Ornaments Background 3D (dibuat fixed agar tidak mengacaukan scrollbar) -->
+    <!-- Ornaments Background 3D -->
     <div class="fixed -top-24 -left-20 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="fixed -bottom-24 -right-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -84,7 +83,7 @@
             @endif
 
             <!-- Form Autentikasi Laravel Blade -->
-            <form method="POST" action="{{ route('login') }}" class="space-y-5">
+            <form method="POST" action="{{ route('login') }}" class="space-y-5" autocomplete="off">
                 @csrf
 
                 <!-- Input Username -->
@@ -96,7 +95,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </div>
-                        <input type="text" name="username" id="username" value="{{ old('username') }}" required autofocus
+                        <input type="text" name="username" id="username" value="" autocomplete="off" required autofocus
                             class="bg-slate-50/80 border border-slate-200/80 text-slate-800 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-3.5 transition-all duration-200 shadow-inner placeholder-slate-400"
                             placeholder="Masukkan username Anda">
                     </div>
@@ -111,7 +110,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
                         </div>
-                        <input type="password" name="password" id="password" required
+                        <input type="password" name="password" id="password" autocomplete="new-password" required
                             class="bg-slate-50/80 border border-slate-200/80 text-slate-800 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 pe-10 p-3.5 transition-all duration-200 shadow-inner placeholder-slate-400"
                             placeholder="••••••••">
 
@@ -154,6 +153,19 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script>
+        // Reset form input pada saat dimuat agar tidak terisi otomatis
+        document.addEventListener("DOMContentLoaded", function () {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+
+            if (usernameInput && !usernameInput.hasAttribute('data-has-error')) {
+                usernameInput.value = '';
+            }
+            if (passwordInput) {
+                passwordInput.value = '';
+            }
+        });
+
         function togglePassword() {
             const passInput = document.getElementById('password');
             const eyeIcon = document.getElementById('eyeIcon');
