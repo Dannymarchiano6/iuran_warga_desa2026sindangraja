@@ -112,10 +112,6 @@ class AuthController extends Controller
 
         return redirect()->route('login')->with('success', 'Pendaftaran akun berhasil! Silakan login.');
     }
-
-    /**
-     * Proses Logout
-     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -123,6 +119,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'Anda telah berhasil keluar.');
+        // Diarahkan ke Form Login saat klik Logout
+        return redirect()->route('login')->with('status', 'Anda telah berhasil keluar dari sistem.');
     }
 }
