@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -63,16 +62,17 @@ class AuthController extends Controller
     protected function redirectBasedOnRole($user)
     {
         if ($user->role === 'admin') {
-            // Arahkan admin langsung ke Portal Menu Utama
+            // Arahkan admin langsung ke Portal Menu Utama Admin
             return redirect()->intended(route('admin.menu'));
         }
 
         if ($user->role === 'bendahara') {
-            return redirect()->intended(route('bendahara.dashboard'));
+            // Arahkan bendahara langsung ke Portal Menu Utama Bendahara
+            return redirect()->intended(route('bendahara.menu'));
         }
 
         // Fallback default jika role warga/lainnya
-        return redirect()->intended(route('home'));
+        return redirect()->intended(route('public.home'));
     }
 
     /**
@@ -88,7 +88,7 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // Validasi input dari form registrasi (Role di-set otomatis)
+        // Validasi input dari form registrasi
         $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'username'     => ['required', 'string', 'max:255', 'unique:users,username'],
@@ -102,8 +102,8 @@ class AuthController extends Controller
             'password.confirmed'    => 'Konfirmasi password tidak cocok.',
         ]);
 
-        // Simpan ke Database (Role default otomatis = 'warga')
-        DB::table('users')->insert([
+        // Simpan via Eloquent Model (Timestamp & Hash terkelola bersih)
+        User::create([
             'nama_lengkap' => $request->nama_lengkap,
             'username'     => $request->username,
             'role'         => 'warga', // Role otomatis diset sebagai warga
@@ -112,6 +112,10 @@ class AuthController extends Controller
 
         return redirect()->route('login')->with('success', 'Pendaftaran akun berhasil! Silakan login.');
     }
+
+    /**
+     * Proses Logout
+     */
     public function logout(Request $request)
     {
         Auth::logout();
