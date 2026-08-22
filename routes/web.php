@@ -5,6 +5,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\KartuKeluargaController;
+use App\Http\Controllers\JenisIuranController;
+use App\Http\Controllers\PembayaranBendaharaController;
+use App\Http\Controllers\LaporanPembayaranController;
 use App\Http\Middleware\PreventBackHistory;
 
 /*
@@ -115,11 +118,24 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
             ]);
         })->name('dashboard');
 
-        // Rute Modul Keuangan Bendahara
-        Route::get('/jenis-iuran', function() { return "Halaman Jenis Iuran"; })->name('jenis_iuran.index');
-        Route::get('/pembayaran', function() { return "Halaman Pembayaran"; })->name('pembayaran.index');
+        // CRUD Modul Jenis Iuran (JenisIuranController)
+        Route::get('/jenis-iuran', [JenisIuranController::class, 'index'])->name('jenis_iuran.index');
+        Route::post('/jenis-iuran', [JenisIuranController::class, 'store'])->name('jenis_iuran.store');
+        Route::put('/jenis-iuran/{id}', [JenisIuranController::class, 'update'])->name('jenis_iuran.update');
+        Route::delete('/jenis-iuran/{id}', [JenisIuranController::class, 'destroy'])->name('jenis_iuran.destroy');
+
+        // CRUD Modul Pembayaran (PembayaranBendaharaController)
+        Route::get('/pembayaran', [PembayaranBendaharaController::class, 'index'])->name('pembayaran.index');
+        Route::post('/pembayaran', [PembayaranBendaharaController::class, 'store'])->name('pembayaran.store');
+        Route::put('/pembayaran/{id}', [PembayaranBendaharaController::class, 'update'])->name('pembayaran.update');
+        Route::delete('/pembayaran/{id}', [PembayaranBendaharaController::class, 'destroy'])->name('pembayaran.destroy');
+
+        // Modul Laporan Pembayaran (LaporanPembayaranController)
+        Route::get('/laporan', [LaporanPembayaranController::class, 'index'])->name('laporan.index');
+        Route::get('/laporan/cetak-pdf', [LaporanPembayaranController::class, 'cetakPdf'])->name('laporan.cetak-pdf');
+
+        // Rute Modul Keuangan Bendahara Lainnya
         Route::get('/tagihan', function() { return "Halaman Tagihan"; })->name('tagihan.index');
-        Route::get('/laporan', function() { return "Halaman Laporan"; })->name('laporan.index');
         Route::get('/pengeluaran', function() { return "Halaman Pengeluaran"; })->name('pengeluaran.index');
         Route::get('/pemasukan', function() { return "Halaman Pemasukan"; })->name('pemasukan.index');
     });
